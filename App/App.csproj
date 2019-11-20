@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
@@ -15,6 +15,9 @@
     <None Include="$(NuGetPackageRoot)\MessagePack\1.8.80\lib\netstandard2.0\MessagePack.dll" Link="v1.8\MessagePack.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    
+    <!-- This file would be ignored by .NET Core anyway, so don't deploy it for that. -->
+    <None Remove="App.config" Condition=" '$(TargetFramework)' == 'netcoreapp3.0' " />
   </ItemGroup>
   
 </Project>
