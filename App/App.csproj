@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(NuGetPackageRoot)\MessagePack\1.8.80\lib\netstandard2.0\MessagePack.dll" Link="v1.8\MessagePack.dll">
+    <None Include="$(NuGetPackageRoot)\MessagePack\1.9.11\lib\netstandard2.0\MessagePack.dll" Link="v1.9\MessagePack.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     

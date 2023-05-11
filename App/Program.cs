@@ -46,7 +46,7 @@ namespace App
         {
             string pathToAssembly = assemblyName switch
             {
-                { Name: "MessagePack", Version: { Major: 1 } } => Path.Combine(this.binDirectory, "v1.8", "MessagePack.dll"),
+                { Name: "MessagePack", Version: { Major: 1 } } => Path.Combine(this.binDirectory, "v1.9", "MessagePack.dll"),
                 { Name: "MessagePack", Version: { Major: 2 } } => Path.Combine(this.binDirectory, "MessagePack.dll"),
 
                 // We don't know where to find the assembly, but we have to load it or it reverts back to the default context.
