@@ -19,14 +19,24 @@ namespace App
 
         private static void DoMsgPackStuff()
         {
-            const string message = "hi";
-            Console.WriteLine($"V2 serialized: {Convert.ToBase64String(MsgPackV2Consumer.Serialize(message))}");
-            Console.WriteLine($"V1 serialized: {Convert.ToBase64String(MsgPackV1Consumer.Serialize(message))}");
+            Poco message = new() { Message = "hi" };
+
+            var v2data = MsgPackV2Consumer.Serialize(message);
+            Console.WriteLine($"V2 serialized: {Convert.ToBase64String(v2data)}");
+            var v2message = MsgPackV2Consumer.Deserialize(typeof(Poco), v2data);
+
+            var v1data = MsgPackV1Consumer.Serialize(message);
+            Console.WriteLine($"V1 serialized: {Convert.ToBase64String(v1data)}");
+            var v1message = MsgPackV1Consumer.Deserialize(typeof(Poco), v1data);
         }
     }
 
- #if NET7_0
+    public class Poco
+    {
+        public string Message { get; set; }
+    }
 
+#if NET7_0
     internal class MsgPackV1Consumer
     {
         private static MsgPackV1Consumer _instance;
@@ -41,6 +51,7 @@ namespace App
 
         private readonly Type _sideLoadedMsgPackV1Consumer;
         private readonly MethodInfo _serializeMethod;
+        private readonly MethodInfo _deserializeMethod;
 
         public MsgPackV1Consumer()
         {
@@ -48,9 +59,11 @@ namespace App
             var assembly = assemblyLoadContext.LoadFromAssemblyPath(typeof(MsgPackV1.MsgPackV1Consumer).Assembly.Location);
             _sideLoadedMsgPackV1Consumer = assembly.GetType(typeof(MsgPackV1.MsgPackV1Consumer).FullName);
             _serializeMethod = _sideLoadedMsgPackV1Consumer.GetMethod(nameof(Serialize), new Type[] { typeof(string) });
+            _deserializeMethod = _sideLoadedMsgPackV1Consumer.GetMethod(nameof(Deserialize), new Type[] { typeof(Type), typeof(byte[]) });
         }
 
-        public static byte[] Serialize(string value) => Instance._serializeMethod.Invoke(null, new object[] { value }) as byte[];
+        public static byte[] Serialize(object value) => Instance._serializeMethod.Invoke(null, new object[] { value }) as byte[];
+        public static object Deserialize(Type type, byte[] value) => Instance._deserializeMethod.Invoke(null, new object[] { type, value });
     }
 
     internal class MyBindingRedirectAssemblyLoadContext : AssemblyLoadContext
