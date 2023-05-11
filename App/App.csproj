@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net48;net7.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +18,7 @@
     </None>
     
     <!-- This file would be ignored by .NET Core anyway, so don't deploy it for that. -->
-    <None Remove="App.config" Condition=" '$(TargetFramework)' == 'netcoreapp3.0' " />
+    <None Remove="App.config" Condition=" '$(TargetFramework)' == 'net7.0' " />
   </ItemGroup>
   
 </Project>

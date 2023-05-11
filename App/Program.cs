@@ -1,8 +1,9 @@
-﻿using System;
+﻿using MsgPackV1;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-#if NETCOREAPP
+#if NET7_0
 using System.Reflection;
 using System.Runtime.Loader;
 #endif
@@ -13,15 +14,7 @@ namespace App
     {
         static void Main(string[] args)
         {
-#if NETCOREAPP
-            var alc = new MyBindingRedirectAssemblyLoadContext();
-            var a = alc.LoadFromAssemblyPath(typeof(Program).Assembly.Location);
-            var t = a.GetType(typeof(Program).FullName);
-            var t_self = typeof(Program);
-            t.GetMethod(nameof(DoMsgPackStuff), BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, null);
-#else
             DoMsgPackStuff();
-#endif
         }
 
         private static void DoMsgPackStuff()
@@ -32,7 +25,34 @@ namespace App
         }
     }
 
-#if NETCOREAPP
+ #if NET7_0
+
+    internal class MsgPackV1Consumer
+    {
+        private static MsgPackV1Consumer _instance;
+        public static MsgPackV1Consumer Instance
+        {
+            get
+            {
+                _instance ??= new MsgPackV1Consumer();
+                return _instance;
+            }
+        }
+
+        private readonly Type _sideLoadedMsgPackV1Consumer;
+        private readonly MethodInfo _serializeMethod;
+
+        public MsgPackV1Consumer()
+        {
+            var assemblyLoadContext = new MyBindingRedirectAssemblyLoadContext();
+            var assembly = assemblyLoadContext.LoadFromAssemblyPath(typeof(MsgPackV1.MsgPackV1Consumer).Assembly.Location);
+            _sideLoadedMsgPackV1Consumer = assembly.GetType(typeof(MsgPackV1.MsgPackV1Consumer).FullName);
+            _serializeMethod = _sideLoadedMsgPackV1Consumer.GetMethod(nameof(Serialize), new Type[] { typeof(string) });
+        }
+
+        public static byte[] Serialize(string value) => Instance._serializeMethod.Invoke(null, new object[] { value }) as byte[];
+    }
+
     internal class MyBindingRedirectAssemblyLoadContext : AssemblyLoadContext
     {
         private readonly string binDirectory;
