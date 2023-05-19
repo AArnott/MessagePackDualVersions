@@ -1,61 +1,52 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 #if NETCOREAPP
 using System.Reflection;
 using System.Runtime.Loader;
 #endif
+using MsgPackV1;
+using MsgPackV2;
 
-namespace App
+namespace App;
+
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
 #if NETCOREAPP
-            var alc = new MyBindingRedirectAssemblyLoadContext();
-            var a = alc.LoadFromAssemblyPath(typeof(Program).Assembly.Location);
-            var t = a.GetType(typeof(Program).FullName);
-            var t_self = typeof(Program);
-            t.GetMethod(nameof(DoMsgPackStuff), BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, null);
-#else
-            DoMsgPackStuff();
-#endif
-        }
-
-        private static void DoMsgPackStuff()
+        AssemblyLoadContext v1Context = new("MessagePack v1");
+        AssemblyLoadContext v2Context = new("MessagePack v2");
+        AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly()).Resolving += (s, e) =>
         {
-            const string message = "hi";
-            Console.WriteLine($"V2 serialized: {Convert.ToBase64String(MsgPackV2Consumer.Serialize(message))}");
-            Console.WriteLine($"V1 serialized: {Convert.ToBase64String(MsgPackV1Consumer.Serialize(message))}");
-        }
-    }
-
-#if NETCOREAPP
-    internal class MyBindingRedirectAssemblyLoadContext : AssemblyLoadContext
-    {
-        private readonly string binDirectory;
-
-        internal MyBindingRedirectAssemblyLoadContext()
-        {
-            this.binDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-        }
-
-        protected override Assembly Load(AssemblyName assemblyName)
-        {
-            string pathToAssembly = assemblyName switch
+            if (e.Name.StartsWith("MessagePack", StringComparison.OrdinalIgnoreCase) && e.Version is not null)
             {
-                { Name: "MessagePack", Version: { Major: 1 } } => Path.Combine(this.binDirectory, "v1.8", "MessagePack.dll"),
-                { Name: "MessagePack", Version: { Major: 2 } } => Path.Combine(this.binDirectory, "MessagePack.dll"),
+                string assemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"v{e.Version.Major}", $"{e.Name}.dll");
+                AssemblyLoadContext alc = e.Version.Major switch
+                {
+                    1 => v1Context,
+                    2 => v2Context,
+                    _ => throw new InvalidOperationException(),
+                };
+                return alc.LoadFromAssemblyPath(assemblyPath);
+            }
 
-                // We don't know where to find the assembly, but we have to load it or it reverts back to the default context.
-                // So ask the default context to load it, then reload it with the same path.
-                _ => Assembly.Load(assemblyName)?.Location,
-            };
-
-            return pathToAssembly != null ? this.LoadFromAssemblyPath(pathToAssembly) : null;
-        }
-    }
+            return null;
+        };
 #endif
+        DoMsgPackStuff();
+    }
+
+    private static void DoMsgPackStuff()
+    {
+        DataObject message = new() { Message = "hi" };
+
+        var v2data = MsgPackV2Consumer.Serialize(message);
+        Console.WriteLine($"V2 serialized: {Convert.ToBase64String(v2data)}");
+        DataObject v2message = MsgPackV2Consumer.Deserialize<DataObject>(v2data);
+
+        var v1data = MsgPackV1Consumer.Serialize(message);
+        Console.WriteLine($"V1 serialized: {Convert.ToBase64String(v1data)}");
+        DataObject v1message = MsgPackV1Consumer.Deserialize<DataObject>(v1data);
+    }
 }

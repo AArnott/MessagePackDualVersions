@@ -2,9 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net48;net7.0</TargetFrameworks>
+    <NoWarn>$(NoWarn);MSB3276</NoWarn>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <ResolveAssemblyReferencesSilent>true</ResolveAssemblyReferencesSilent>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net48'">
+    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MsgPackV1Consumer\MsgPackV1Consumer.csproj" />
@@ -12,12 +20,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(NuGetPackageRoot)\MessagePack\1.8.80\lib\netstandard2.0\MessagePack.dll" Link="v1.8\MessagePack.dll">
+    <None Include="$(NuGetPackageRoot)\MessagePack\$(MsgPackV1Version)\lib\netstandard2.0\MessagePack.dll" Link="v1\MessagePack.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    
+    <None Include="$(NuGetPackageRoot)\MessagePack\$(MsgPackV2Version)\lib\netstandard2.0\MessagePack.dll" Link="v2\MessagePack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(NuGetPackageRoot)\MessagePack.Annotations\$(MsgPackV2Version)\lib\netstandard2.0\MessagePack.Annotations.dll" Link="v2\MessagePack.Annotations.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
     <!-- This file would be ignored by .NET Core anyway, so don't deploy it for that. -->
-    <None Remove="App.config" Condition=" '$(TargetFramework)' == 'netcoreapp3.0' " />
+    <None Remove="App.config" Condition=" '$(TargetFramework)' == 'net7.0' " />
   </ItemGroup>
-  
+
 </Project>
