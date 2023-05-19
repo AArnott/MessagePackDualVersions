@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <MsgPackV1Version>1.9.11</MsgPackV1Version>
+    <MsgPackV2Version>2.5.108</MsgPackV2Version>
+  </PropertyGroup>
+</Project>
