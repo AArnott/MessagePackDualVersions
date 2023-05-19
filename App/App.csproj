@@ -5,6 +5,7 @@
     <TargetFrameworks>net48;net7.0</TargetFrameworks>
     <NoWarn>$(NoWarn);MSB3276</NoWarn>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <ResolveAssemblyReferencesSilent>true</ResolveAssemblyReferencesSilent>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net48'">
